@@ -11,7 +11,7 @@ export function SidebarBrand() {
 
 	return (
 		<Flex alignItems='center' flexDirection='column'>
-			<HorizonLogo h='26px' w='175px' my='32px' color={logoColor} />
+			Stock Manager System
 			<HSeparator mb='20px' />
 		</Flex>
 	);

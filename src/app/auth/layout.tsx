@@ -20,13 +20,8 @@ export default function AuthLayout({ children }: AuthProps) {
   return (
     <Box>
       <SidebarContext.Provider
-        value={{
-          toggleSidebar,
-          setToggleSidebar,
-        }}
-      >
+              >
         <Box
-          bg={authBg}
           float="right"
           minHeight="100vh"
           height="100%"

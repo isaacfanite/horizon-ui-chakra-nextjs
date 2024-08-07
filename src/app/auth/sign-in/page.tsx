@@ -1,34 +1,11 @@
 'use client';
 /* eslint-disable */
-/*!
-  _   _  ___  ____  ___ ________  _   _   _   _ ___   
- | | | |/ _ \|  _ \|_ _|__  / _ \| \ | | | | | |_ _| 
- | |_| | | | | |_) || |  / / | | |  \| | | | | || | 
- |  _  | |_| |  _ < | | / /| |_| | |\  | | |_| || |
- |_| |_|\___/|_| \_\___/____\___/|_| \_|  \___/|___|
-                                                                                                                                                                                                                                                                                                                                       
-=========================================================
-* Horizon UI - v1.1.0
-=========================================================
-
-* Product Page: https://www.horizon-ui.com/
-* Copyright 2022 Horizon UI (https://www.horizon-ui.com/)
-
-* Designed and Coded by Simmmple
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 // Chakra imports
 import {
   Box,
   Button,
-  Checkbox,
-  Flex,
   FormControl,
   FormLabel,
   Heading,
@@ -38,35 +15,67 @@ import {
   InputRightElement,
   Text,
   useColorModeValue,
+  Flex,
 } from '@chakra-ui/react';
 // Custom components
-import { HSeparator } from 'components/separator/Separator';
 import DefaultAuthLayout from 'layouts/auth/Default';
 // Assets
-import Link from 'next/link';
-import { FcGoogle } from 'react-icons/fc';
-import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { RiEyeCloseLine } from 'react-icons/ri';
+import { MdOutlineRemoveRedEye } from 'react-icons/md';
 
 export default function SignIn() {
   // Chakra color mode
   const textColor = useColorModeValue('navy.700', 'white');
   const textColorSecondary = 'gray.400';
   const textColorDetails = useColorModeValue('navy.700', 'secondaryGray.600');
-  const textColorBrand = useColorModeValue('brand.500', 'white');
   const brandStars = useColorModeValue('brand.500', 'brand.400');
-  const googleBg = useColorModeValue('secondaryGray.300', 'whiteAlpha.200');
-  const googleText = useColorModeValue('navy.700', 'white');
-  const googleHover = useColorModeValue(
-    { bg: 'gray.200' },
-    { bg: 'whiteAlpha.300' },
-  );
-  const googleActive = useColorModeValue(
-    { bg: 'secondaryGray.300' },
-    { bg: 'whiteAlpha.200' },
-  );
-  const [show, setShow] = React.useState(false);
+  const router = useRouter();
+  // State for form inputs
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.role) {
+      router.push('/admin/default');
+    }
+  }, [router]);
+  // Handle show/hide password
   const handleClick = () => setShow(!show);
+
+  // Handle form submission
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await fetch('| https://lm.fanitehub.com/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Login successful:', data);
+        // Save the user data to localStorage
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/admin/default');
+      } else {
+        console.error('Login failed:', data);
+        // Handle login failure (e.g., show error message)
+      }
+    } catch (error) {
+      console.error('Login failed:', error.message);
+      router.push('/auth/sign-in');
+    }
+  };
+
+
+
   return (
     <DefaultAuthLayout illustrationBackground={'/img/auth/auth.png'}>
       <Flex
@@ -86,15 +95,6 @@ export default function SignIn() {
           <Heading color={textColor} fontSize="36px" mb="10px">
             Sign In
           </Heading>
-          <Text
-            mb="36px"
-            ms="4px"
-            color={textColorSecondary}
-            fontWeight="400"
-            fontSize="md"
-          >
-            Enter your email and password to sign in!
-          </Text>
         </Box>
         <Flex
           zIndex="2"
@@ -107,31 +107,7 @@ export default function SignIn() {
           me="auto"
           mb={{ base: '20px', md: 'auto' }}
         >
-          <Button
-            fontSize="sm"
-            me="0px"
-            mb="26px"
-            py="15px"
-            h="50px"
-            borderRadius="16px"
-            bgColor={googleBg}
-            color={googleText}
-            fontWeight="500"
-            _hover={googleHover}
-            _active={googleActive}
-            _focus={googleActive}
-          >
-            <Icon as={FcGoogle} w="20px" h="20px" me="10px" />
-            Sign in with Google
-          </Button>
-          <Flex align="center" mb="25px">
-            <HSeparator />
-            <Text color="gray.400" mx="14px">
-              or
-            </Text>
-            <HSeparator />
-          </Flex>
-          <FormControl>
+          <FormControl onSubmit={handleSubmit} as="form">
             <FormLabel
               display="flex"
               ms="4px"
@@ -140,18 +116,20 @@ export default function SignIn() {
               color={textColor}
               mb="8px"
             >
-              Email<Text color={brandStars}>*</Text>
+              Username<Text color={brandStars}>*</Text>
             </FormLabel>
             <Input
               isRequired={true}
               variant="auth"
               fontSize="sm"
               ms={{ base: '0px', md: '0px' }}
-              type="email"
-              placeholder="mail@simmmple.com"
+              type="text"
+              placeholder="enter username"
               mb="24px"
               fontWeight="500"
               size="lg"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
             <FormLabel
               ms="4px"
@@ -171,6 +149,8 @@ export default function SignIn() {
                 size="lg"
                 type={show ? 'text' : 'password'}
                 variant="auth"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
               <InputRightElement display="flex" alignItems="center" mt="4px">
                 <Icon
@@ -181,34 +161,6 @@ export default function SignIn() {
                 />
               </InputRightElement>
             </InputGroup>
-            <Flex justifyContent="space-between" align="center" mb="24px">
-              <FormControl display="flex" alignItems="center">
-                <Checkbox
-                  id="remember-login"
-                  colorScheme="brandScheme"
-                  me="10px"
-                />
-                <FormLabel
-                  htmlFor="remember-login"
-                  mb="0"
-                  fontWeight="normal"
-                  color={textColor}
-                  fontSize="sm"
-                >
-                  Keep me logged in
-                </FormLabel>
-              </FormControl>
-              <Link href="/auth/forgot-password">
-                <Text
-                  color={textColorBrand}
-                  fontSize="sm"
-                  w="124px"
-                  fontWeight="500"
-                >
-                  Forgot password?
-                </Text>
-              </Link>
-            </Flex>
             <Button
               fontSize="sm"
               variant="brand"
@@ -216,31 +168,11 @@ export default function SignIn() {
               w="100%"
               h="50"
               mb="24px"
+              type="submit"
             >
-              Sign In
+              Login
             </Button>
           </FormControl>
-          <Flex
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="start"
-            maxW="100%"
-            mt="0px"
-          >
-            <Link href="/auth/sign-up">
-              <Text color={textColorDetails} fontWeight="400" fontSize="14px">
-                Not registered yet?
-                <Text
-                  color={textColorBrand}
-                  as="span"
-                  ms="5px"
-                  fontWeight="500"
-                >
-                  Create an Account
-                </Text>
-              </Text>
-            </Link>
-          </Flex>
         </Flex>
       </Flex>
     </DefaultAuthLayout>

@@ -39,23 +39,6 @@ function AuthIllustration(props: {
             marginTop: '40px',
           }}
         >
-          <Flex
-            align="center"
-            ps={{ base: '25px', lg: '0px' }}
-            pt={{ lg: '0px', xl: '0px' }}
-            w="fit-content"
-          >
-            <Icon
-              as={FaChevronLeft}
-              me="12px"
-              h="13px"
-              w="8px"
-              color="secondaryGray.600"
-            />
-            <Text ms="0px" fontSize="sm" color="secondaryGray.600">
-              Back to Simmmple
-            </Text>
-          </Flex>
         </Link>
         {children}
         <Box
@@ -67,7 +50,7 @@ function AuthIllustration(props: {
           right="0px"
         >
           <Flex
-            style={{ backgroundImage: `url(${illustrationBackground})` }}
+            style={{ backgroundImage: `url('https://images.pexels.com/photos/4483608/pexels-photo-4483608.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')` }}
             justify="center"
             align="end"
             w="100%"
@@ -80,7 +63,6 @@ function AuthIllustration(props: {
         </Box>
         <Footer mb={{ xl: '3vh' }} />
       </Flex>
-      <FixedPlugin />
     </Flex>
   );
 }

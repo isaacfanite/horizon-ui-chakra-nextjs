@@ -5,6 +5,14 @@ import {
   MdHome,
   MdLock,
   MdOutlineShoppingCart,
+  MdList,
+  MdShoppingBasket,
+  MdPlusOne,
+  MdVerifiedUser,
+  MdStorage,
+  MdStore,
+  MdSdStorage,
+  MdShelves,
 } from 'react-icons/md';
 
 // Admin Imports
@@ -22,46 +30,44 @@ const routes: IRoute[] = [
   {
     name: 'Main Dashboard',
     layout: '/admin',
-    path: '/default',
+    path: '/admin/default',
     icon: <Icon as={MdHome} width="20px" height="20px" color="inherit" />,
   },
   {
-    name: 'NFT Marketplace',
+    name: 'Product Master List',
     layout: '/admin',
-    path: '/nft-marketplace',
-    icon: (
-      <Icon
-        as={MdOutlineShoppingCart}
-        width="20px"
-        height="20px"
-        color="inherit"
-      />
-    ),
-    secondary: true,
+    icon: <Icon as={MdList} width="20px" height="20px" color="inherit" />,
+    path: '/prod-mstr-lst',
   },
   {
-    name: 'Data Tables',
+    name: 'Daily Dispatch',
+    layout: '/admin',
+    icon: <Icon as={MdShoppingBasket} width="20px" height="20px" color="inherit" />,
+    path: '/dailydispatch',
+  },
+  {
+    name: 'Daily Production',
     layout: '/admin',
     icon: <Icon as={MdBarChart} width="20px" height="20px" color="inherit" />,
-    path: '/data-tables',
+    path: '/dailyproduction',
   },
   {
-    name: 'Profile',
+    name: 'Store',
     layout: '/admin',
-    path: '/profile',
-    icon: <Icon as={MdPerson} width="20px" height="20px" color="inherit" />,
+    icon: <Icon as={MdShoppingBasket} width="20px" height="20px" color="inherit" />,
+    path: '/store',
   },
   {
-    name: 'Sign In',
-    layout: '/auth',
-    path: '/sign-in',
-    icon: <Icon as={MdLock} width="20px" height="20px" color="inherit" />,
+    name: 'Stock',
+    layout: '/admin',
+    icon: <Icon as={MdShelves} width="20px" height="20px" color="inherit" />,
+    path: '/stock',
   },
   {
-    name: 'RTL Admin',
-    layout: '/rtl',
-    path: '/rtl-default',
-    icon: <Icon as={MdHome} width="20px" height="20px" color="inherit" />,
+    name: 'users',
+    layout: '/admin',
+    icon: <Icon as={MdVerifiedUser} width="20px" height="20px" color="inherit" />,
+    path: '/users',
   },
 ];
 

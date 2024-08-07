@@ -1,0 +1,409 @@
+import React from 'react';
+import { Box, Flex, Text, Table, Tbody, Td, Th, Thead, Tr, useColorModeValue, Input, Button, Stack } from '@chakra-ui/react';
+import { createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, SortingState, useReactTable, PaginationState } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import Card from 'components/card/Card';
+import Menu from 'components/menu/productMenu';
+import EditModal from './EditModal'; // Import the EditModal component
+
+type RowObj = {
+  artno: string;
+  product_name: string;
+  category: string;
+  package_size: string;
+  unit: string;
+  finished_pdt: string;
+  demand: string;
+  origin: string;
+  quantity: string;
+  usage_qty: string;
+  cost: string;
+  stock_value: string;
+  updatedAt: string;
+};
+
+const columnHelper = createColumnHelper<RowObj>();
+
+export default function ComplexTable() {
+  const [tableData, setTableData] = React.useState<RowObj[]>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [filteredData, setFilteredData] = React.useState<RowObj[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [currentRowData, setCurrentRowData] = React.useState<RowObj | null>(null);
+  const textColor = useColorModeValue('secondaryGray.900', 'white');
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100');
+
+  React.useEffect(() => {
+    fetch('| https://lm.fanitehub.com/stock')
+      .then(response => response.json())
+      .then(data => setTableData(data))
+      .catch(error => console.error('Error fetching data:', error));
+  }, []);
+
+  React.useEffect(() => {
+    const filtered = tableData.filter(item =>
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+    setFilteredData(filtered);
+  }, [searchTerm, tableData]);
+
+  const handleRowClick = (row: RowObj) => {
+    setCurrentRowData(row);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSave = (updatedData: RowObj) => {
+    setTableData(prevData =>
+      prevData.map(item => (item.artno === updatedData.artno ? updatedData : item))
+    );
+  };
+
+  const formatDate = (dateStr: string) => {
+    return format(new Date(dateStr), 'MMM dd, yyyy'); // Change the format as needed
+  };
+
+  
+
+  const exportToExcel = async () => {
+    const formatDate = (date) => {
+      const d = new Date(date);
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    };
+
+    const formattedData = filteredData.map(data => ({
+      ...data,
+      updatedAt: formatDate(data.updatedAt)
+    }));
+
+    const headerRow = [
+      'Art No', 'Barcode', 'Product Items', 'Pack Size', 'Quantity', 'Price Inl Vat', 'Price Exc Vat', 'Stock Value', 'Updated At'
+    ];
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+
+    const imgUrl = 'https://res.cloudinary.com/dw90vkmoc/image/upload/v1722858399/WhatsApp_Image_2024-08-05_at_14.36.09_272c8318_z85oe6.jpg'; // Update this path to your image
+    const response = await fetch(imgUrl);
+    const imgBuffer = await response.arrayBuffer(); // Renamed to imgBuffer
+    const imageId = workbook.addImage({
+      buffer: Buffer.from(imgBuffer),
+      extension: 'jpeg',
+    });
+
+    worksheet.addImage(imageId, {
+      tl: { col: 0, row: 0 },
+      br: { col: 12, row: 4 }
+    });
+
+    worksheet.addRow(headerRow);
+
+    formattedData.forEach(data => {
+      worksheet.addRow([
+        data.art_no, data.barcode, data.product_items, data.pack_size, data.quantity, data.price_incl_vat, data.price_exc_vat, data.stock_value, data.updatedAt
+      ]);
+    });
+
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    const fileName = `STOCK REPORT ${dateStr}.xlsx`;
+
+    const workbookBuffer = await workbook.xlsx.writeBuffer(); // Renamed to workbookBuffer
+    const blob = new Blob([workbookBuffer], { type: 'application/octet-stream' });
+    saveAs(blob, fileName);
+  };
+
+  const columns = [
+    columnHelper.accessor('art_no', {
+      id: 'art_no',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          ART NO
+        </Text>
+      ),
+      cell: (info: any) => (
+        <Flex align='center'>
+          <Text color={textColor} fontSize='sm' fontWeight='400'>
+            {info.getValue()}
+          </Text>
+        </Flex>
+      )
+    }),
+    columnHelper.accessor('barcode', {
+      id: 'barcode',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          BARCODE
+        </Text>
+      ),
+      cell: (info: any) => (
+        <Flex align='center'>
+          <Text color={textColor} fontSize='sm' fontWeight='400'>
+            {info.getValue()}
+          </Text>
+        </Flex>
+      )
+    }),
+    columnHelper.accessor('product_items', {
+      id: 'product_items',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          PRODUCT ITEMS
+        </Text>
+      ),
+      cell: (info: any) => (
+        <Flex align='center'>
+          <Text color={textColor} fontSize='sm' fontWeight='400'>
+            {info.getValue()}
+          </Text>
+        </Flex>
+      )
+    }),
+ 
+    
+    columnHelper.accessor('pack_size', {
+      id: 'pack_size',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          PACK SIZE
+        </Text>
+      ),
+      cell: (info) => (
+        <Text color={textColor} fontSize='sm' fontWeight='400'>
+          {info.getValue()}
+        </Text>
+      )
+    }),
+    columnHelper.accessor('price_incl_vat', {
+      id: 'price_incl_vat',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          PRICE INCL VAT
+        </Text>
+      ),
+      cell: (info) => (
+        <Flex align='center'>
+          <Text color={textColor} fontSize='sm' fontWeight='400'>
+            {info.getValue()}
+          </Text>
+        </Flex>
+      )
+    }),
+    columnHelper.accessor('price_exc_vat', {
+      id: 'price_exc_vat',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          PRICE EXC VAT
+        </Text>
+      ),
+      cell: (info) => (
+        <Flex align='center'>
+          <Text color={textColor} fontSize='sm' fontWeight='400'>
+            {info.getValue()}
+          </Text>
+        </Flex>
+      )
+    }),
+    columnHelper.accessor('quantity', {
+      id: 'quantity',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          QUANTITY
+        </Text>
+      ),
+      cell: (info) => (
+        <Text color={textColor} fontSize='sm' fontWeight='400'>
+          {info.getValue()}
+        </Text>
+      )
+    }),
+    columnHelper.accessor('stock_value', {
+      id: 'stock_value',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          STOCK VALUE
+        </Text>
+      ),
+      cell: (info) => (
+        <Text color={textColor} fontSize='sm' fontWeight='400'>
+          {info.getValue()}
+        </Text>
+      )
+    }),
+    columnHelper.accessor('updatedAt', {
+      id: 'updatedAt',
+      header: () => (
+        <Text
+          justifyContent='space-between'
+          align='center'
+          fontSize={{ sm: '8px', lg: '12px' }}
+          color='gray.400'>
+          UPDATED AT
+        </Text>
+      ),
+      cell: (info) => (
+        <Text color={textColor} fontSize='sm' fontWeight='400'>
+          {formatDate(info.getValue())}
+        </Text>
+      )
+    }),
+    columnHelper.display({
+      id: 'actions',
+      cell: (props) => (
+        <Menu
+          row={props.row.original}
+          onEdit={() => handleRowClick(props.row.original)}
+        />
+      )
+    })
+  ];
+
+  const table = useReactTable({
+    data: filteredData,
+    columns,
+    state: {
+      sorting,
+      pagination
+    },
+    onSortingChange: setSorting,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    debugTable: true
+  });
+
+  return (
+    <Card flexDirection='column' w='100%' px='0px' overflowX='auto'>
+      <Flex px='25px' mb="8px" justifyContent='space-between' align='center'>
+        <Text color={textColor} fontSize='22px' fontWeight='400' lineHeight='100%'>
+          Stock Report
+        </Text>
+        <Flex>
+          <Button onClick={exportToExcel} colorScheme="teal" mr="4">
+            Export to Excel
+          </Button>
+          <Menu />
+        </Flex>
+      </Flex>
+      <Box px='25px' mb='20px'>
+        <Stack spacing={4}>
+          <Input
+            placeholder='Search...'
+            value={searchTerm}
+            color={textColor}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </Stack>
+      </Box>
+      <Box overflowX='auto'>
+        <Table variant='simple' color='gray.500' mb='24px' mt="12px">
+        <Thead>
+              {table.getHeaderGroups().map(headerGroup => (
+                <Tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => (
+                    <Th
+                      key={header.id}
+                      borderColor={borderColor}
+                      colSpan={header.colSpan}
+                      cursor='pointer'
+                      onClick={header.column.getToggleSortingHandler()}>
+                      <Flex
+                        justifyContent='space-between'
+                        align='center'
+                        fontSize={{ sm: '10px', lg: '12px' }}
+                        color='gray.400'>
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        <Box>
+                          {{
+                            asc: ' 🔼',
+                            desc: ' 🔽',
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </Box>
+                      </Flex>
+                    </Th>
+                  ))}
+                </Tr>
+              ))}
+            </Thead>
+          <Tbody>
+            {table.getRowModel().rows.map((row) => (
+              <Tr key={row.id} onClick={() => handleRowClick(row.original)}>
+                {row.getVisibleCells().map((cell) => (
+                  <Td
+                    key={cell.id}
+                    fontSize={{ sm: '14px' }}
+                    minW={{ sm: '150px', md: '200px', lg: 'auto' }}
+                    borderColor='transparent'>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </Td>
+                ))}
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+        <Flex justifyContent='space-between' align='center' px='25px' mt='4'>
+          <Text>
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+          </Text>
+          <Flex>
+            <Button
+              onClick={() => table.previousPage()}
+              isDisabled={!table.getCanPreviousPage()}
+              mr='2'>
+              Previous
+            </Button>
+            <Button
+              onClick={() => table.nextPage()}
+              isDisabled={!table.getCanNextPage()}>
+              Next
+            </Button>
+          </Flex>
+        </Flex>
+      </Box>
+      <EditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        data={currentRowData}
+        onSave={handleSave}
+      />
+    </Card>
+  );
+}
