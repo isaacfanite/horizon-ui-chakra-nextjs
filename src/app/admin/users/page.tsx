@@ -1,6 +1,6 @@
 'use client';
 import { Box, Text } from '@chakra-ui/react';
-import Users from 'views/admin/Users/components/Users';
+import Users from 'views/admin/users/components/users';
 import React from 'react';
 
 export default function DataTables() {
